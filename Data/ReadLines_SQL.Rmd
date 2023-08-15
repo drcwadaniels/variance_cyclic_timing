@@ -1,0 +1,29 @@
+---
+title: "CyclicFI_ReadLines"
+author: "Carter Daniels"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+library(stringr)
+
+```
+
+
+```{r}
+data.path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//PostDoc_SQL_DBs//"
+con=paste0(data.path,"cfi_e3_mz_latandbpdata.sql")
+data <- readLines(con)
+data <- data[24]
+data <- str_extract_all(data,"\\(([^()]*)\\)")[[1]]
+data2 <- as.data.frame(t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data),","))),
+               ncol = length(data), nrow=9)))
+colnames(data2)<-c("index","SubjectID","Session","SessionCode","Trial","ProgFI","ObtFI",
+                   "Lat","Breakpoint")
+close(file(con))
+
+
+write.csv(data2,paste0(data.path,"exp2_updated_data.csv"))
+```
