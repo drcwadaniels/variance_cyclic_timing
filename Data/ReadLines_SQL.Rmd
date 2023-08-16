@@ -14,16 +14,79 @@ library(stringr)
 
 ```{r}
 data.path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//PostDoc_SQL_DBs//"
+con=paste0(data.path,"cfi_e1_latandbpdata.sql")
+data <- readLines(con)
+data <- data[24:27]
+data <- str_extract_all(data,"\\(([^()]*)\\)")[[1]]
+for (i in 1:length(data))
+{
+  temp <- as.data.frame(t(matrix(data=t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data[[i]]),","))))),nrow=9)))
+  if (i == 1) {data2 <- temp}
+  else {data2 <- rbind(data2,temp)}
+}
+colnames(data2)<-c("index","SubjectID","Session","SessionCode","Trial","ProgFI","ObtFI",
+                   "Lat","Breakpoint")
+close(file(con))
+
+
+write.csv(data2,paste0(data.path,"exp1_updated_data.csv"))
+```
+
+```{r}
+data.path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//PostDoc_SQL_DBs//"
 con=paste0(data.path,"cfi_e3_mz_latandbpdata.sql")
 data <- readLines(con)
-data <- data[24]
+data <- data[24:27]
 data <- str_extract_all(data,"\\(([^()]*)\\)")[[1]]
-data2 <- as.data.frame(t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data),","))),
-               ncol = length(data), nrow=9)))
+for (i in 1:length(data))
+{
+  temp <- as.data.frame(t(matrix(data=t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data[[i]]),","))))),nrow=9)))
+  if (i == 1) {data2 <- temp}
+  else {data2 <- rbind(data2,temp)}
+}
 colnames(data2)<-c("index","SubjectID","Session","SessionCode","Trial","ProgFI","ObtFI",
                    "Lat","Breakpoint")
 close(file(con))
 
 
 write.csv(data2,paste0(data.path,"exp2_updated_data.csv"))
+```
+
+
+```{r}
+data.path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//PostDoc_SQL_DBs//"
+con=paste0(data.path,"cfi_e1_rrdata.sql")
+data <- readLines(con)
+close(file(con))
+data <- data[c(24:47)]
+data <- str_extract_all(data,"\\(([^()]*)\\)")
+for (i in 1:length(data))
+{
+  temp <- as.data.frame(t(matrix(data=t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data[[i]]),","))))),nrow=6)))
+  if (i == 1) {data2 <- temp}
+  else {data2 <- rbind(data2,temp)}
+}
+
+colnames(data2)<-c("index","SubjectID","Session","Trial","Bin","Rsp")
+
+write.csv(data2,paste0(data.path,"exp1_updated_data_rr.csv"))
+```
+
+```{r}
+data.path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//PostDoc_SQL_DBs//"
+con=paste0(data.path,"cfi_e3_mz_rrdata.sql")
+data <- readLines(con)
+close(file(con))
+data <- data[c(24:45)]
+data <- str_extract_all(data,"\\(([^()]*)\\)")
+for (i in 1:length(data))
+{
+  temp <- as.data.frame(t(matrix(data=t(matrix(as.numeric(unlist(strsplit(gsub("[()]","",data[[i]]),","))))),nrow=6)))
+  if (i == 1) {data2 <- temp}
+  else {data2 <- rbind(data2,temp)}
+}
+
+colnames(data2)<-c("index","SubjectID","Session","Trial","Bin","Rsp")
+
+write.csv(data2,paste0(data.path,"exp2_updated_data_rr.csv"))
 ```
