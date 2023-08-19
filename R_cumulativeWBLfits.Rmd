@@ -1,0 +1,261 @@
+---
+title: "Analysis of Cumulative Weibull Fits"
+author: "Carter Daniels"
+date: "February 21, 2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+#libraries
+library(lme4)
+library(tidyverse)
+library(ggplot2)
+library(rstatix)
+library(BayesFactor)
+library(lmerTest)
+#library(qpcR)
+
+```
+
+```{r}
+#load in data
+path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//Jupyter Lab//"
+raw_wbl <- read.csv(paste(path, "rawWBlfits.csv", sep=""))
+norm_wbl <- read.csv(paste(path, "normWBlfits.csv", sep=""))
+
+raw_wbl$Type <- "Raw"
+norm_wbl$Type <- "Norm"
+
+all_wbl <- rbind(raw_wbl,norm_wbl)
+
+all_wbl$Group <- "B20"
+all_wbl$Group[all_wbl$SubjectID %in% 
+                     c(22,24,25,27,29,31,34,36)] <- "B40"
+all_wbl$Group[all_wbl$SubjectID > 36] <- "B60"
+
+all_wbl$Group <- factor(all_wbl$Group, levels = c("B20","B40","B60"))
+
+all_wbl$logA <- log(all_wbl$A)
+all_wbl$logL <- log(all_wbl$L)
+all_wbl$LogK <- log(all_wbl$K)
+
+all_wbl$Group <- factor(all_wbl$Group, levels = c("B20","B40","B60"))
+all_wbl$SubjectID <- as.factor(all_wbl$SubjectID)
+
+```
+
+
+# Parameter A
+
+```{r}
+
+pA_raw <- lmer(logA~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Raw",])
+anova(pA_raw)
+
+pA_raw_bayesGPx <- lmBF(logA~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pA_raw_bayesGP <- lmBF(logA~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pA_raw_bayesG <- lmBF(logA~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pA_raw_bayesP <- lmBF(logA~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pA_norm_bayesINT <- lmBF(logA~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+
+pA_raw_bayesGPx<-pA_raw_bayesGPx/pA_norm_bayesINT
+pA_raw_bayesGP<-pA_raw_bayesGP/pA_norm_bayesINT
+pA_raw_bayesG<-pA_raw_bayesG/pA_norm_bayesINT
+pA_raw_bayesP<-pA_raw_bayesP/pA_norm_bayesINT
+
+pA_raw_bayesGPx@bayesFactor
+pA_raw_bayesGP@bayesFactor
+pA_raw_bayesG@bayesFactor
+pA_raw_bayesP@bayesFactor
+
+```
+
+```{r}
+
+pA_norm <- lmer(logA~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Norm",])
+anova(pA_norm)
+
+pA_norm_bayesGPx <- lmBF(logA~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pA_norm_bayesGP <- lmBF(logA~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pA_norm_bayesG <- lmBF(logA~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pA_norm_bayesP <- lmBF(logA~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pA_norm_bayesINT <- lmBF(logA~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+
+pA_norm_bayesGPx<-pA_norm_bayesGPx/pA_norm_bayesINT
+pA_norm_bayesGP<-pA_norm_bayesGP/pA_norm_bayesINT
+pA_norm_bayesG<-pA_norm_bayesG/pA_norm_bayesINT
+pA_norm_bayesP<-pA_norm_bayesP/pA_norm_bayesINT
+
+pA_norm_bayesGPx@bayesFactor
+pA_norm_bayesGP@bayesFactor
+pA_norm_bayesG@bayesFactor
+pA_norm_bayesP@bayesFactor
+
+```
+
+
+# Parameter L
+
+```{r}
+
+pL_raw <- lmer(logL~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Raw",])
+anova(pL_raw)
+
+pL_raw_bayesGPx <- lmBF(logL~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pL_raw_bayesGP <- lmBF(logL~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pL_raw_bayesG <- lmBF(logL~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pL_raw_bayesP <- lmBF(logL~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pL_raw_bayesINT <- lmBF(logL~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pL_raw_bayesGPx<-pL_raw_bayesGPx/pL_raw_bayesINT
+pL_raw_bayesGP<-pL_raw_bayesGP/pL_raw_bayesINT
+pL_raw_bayesG<-pL_raw_bayesG/pL_raw_bayesINT
+pL_raw_bayesP<-pL_raw_bayesP/pL_raw_bayesINT
+
+pL_raw_bayesGPx@bayesFactor
+pL_raw_bayesGP@bayesFactor
+pL_raw_bayesG@bayesFactor
+pL_raw_bayesP@bayesFactor
+
+```
+
+
+```{r}
+
+pL_norm <- lmer(logL~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Norm",])
+anova(pL_norm)
+
+pL_norm_bayesGPx <- lmBF(logL~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pL_norm_bayesGP <- lmBF(logL~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pL_norm_bayesG <- lmBF(logL~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pL_norm_bayesP <- lmBF(logL~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pL_norm_bayesINT <- lmBF(logL~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+
+pL_norm_bayesGPx<-pL_norm_bayesGPx/pL_norm_bayesINT
+pL_norm_bayesGP<-pL_norm_bayesGP/pL_norm_bayesINT
+pL_norm_bayesG<-pL_norm_bayesG/pL_norm_bayesINT
+pL_norm_bayesP<-pL_norm_bayesP/pL_norm_bayesINT
+
+pL_norm_bayesGPx@bayesFactor
+pL_norm_bayesGP@bayesFactor
+pL_norm_bayesG@bayesFactor
+pL_norm_bayesP@bayesFactor
+
+```
+
+
+# Parameter K
+
+```{r}
+
+pk_raw <- lmer(LogK~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Raw",])
+anova(pk_raw)
+
+pk_raw_bayesGPx <- lmBF(LogK~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pk_raw_bayesGP <- lmBF(LogK~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pk_raw_bayesG <- lmBF(LogK~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pk_raw_bayesP <- lmBF(LogK~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pk_raw_bayesINT <- lmBF(LogK~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Raw",],
+                     whichRandom = "SubjectID")
+pk_raw_bayesGPx<-pk_raw_bayesGPx/pk_raw_bayesINT
+pk_raw_bayesGP<-pk_raw_bayesGP/pk_raw_bayesINT
+pk_raw_bayesG<-pk_raw_bayesG/pk_raw_bayesINT
+pk_raw_bayesP<-pk_raw_bayesP/pk_raw_bayesINT
+
+pk_raw_bayesGPx@bayesFactor
+pk_raw_bayesGP@bayesFactor
+pk_raw_bayesG@bayesFactor
+pk_raw_bayesP@bayesFactor
+
+```
+
+```{r}
+
+pk_norm <- lmer(LogK~Group*ProgFI+(1|SubjectID), 
+               data= all_wbl[all_wbl$Type=="Norm",])
+
+anova(pk_norm)
+
+pk_norm_bayesGPx <- lmBF(LogK~Group+ProgFI+Group*ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pk_norm_bayesGP <- lmBF(LogK~Group+ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pk_norm_bayesG <- lmBF(LogK~Group+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pk_norm_bayesP <- lmBF(LogK~ProgFI+SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+pk_norm_bayesINT <- lmBF(LogK~SubjectID, 
+                     data=all_wbl[all_wbl$Type=="Norm",],
+                     whichRandom = "SubjectID")
+
+pk_norm_bayesGPx<-pk_norm_bayesGPx/pk_norm_bayesINT
+pk_norm_bayesGP<-pk_norm_bayesGP/pk_norm_bayesINT
+pk_norm_bayesG<-pk_norm_bayesG/pk_norm_bayesINT
+pk_norm_bayesP<-pk_norm_bayesP/pk_norm_bayesINT
+
+pk_norm_bayesGPx@bayesFactor
+pk_norm_bayesGP@bayesFactor
+pk_norm_bayesG@bayesFactor
+pk_norm_bayesP@bayesFactor
+
+```
+
+

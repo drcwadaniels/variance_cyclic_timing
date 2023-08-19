@@ -1,0 +1,233 @@
+---
+title: "Analysis of Sinewave Fits"
+author: "Carter Daniels"
+date: "February 21, 2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+#libraries
+library(tidyverse)
+library(ggplot2)
+library(rstatix)
+library(BayesFactor)
+#library(qpcR)
+
+```
+
+```{r}
+#load in data
+path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//Jupyter Lab//"
+raw_sinewave <- read.csv(paste(path, "raw_sinewaveFits.csv", sep=""))
+norm_sinewave <- read.csv(paste(path, "norm_sinewaveFits.csv", sep=""))
+
+raw_sinewave$Type <- "Raw"
+norm_sinewave$Type <- "Norm"
+
+all_sinewave <- rbind(raw_sinewave,norm_sinewave)
+
+all_sinewave$Group <- "B20"
+all_sinewave$Group[all_sinewave$SubjectID %in% 
+                     c(22,24,25,27,29,31,34,36)] <- "B40"
+all_sinewave$Group[all_sinewave$SubjectID > 36] <- "B60"
+
+all_sinewave$Group <- factor(all_sinewave$Group, levels = c("B20","B40","B60"))
+
+all_sinewave$logB <- log(all_sinewave$B)
+all_sinewave$logSm <- log(all_sinewave$Sm)
+all_sinewave$logP <- log(all_sinewave$P)
+```
+
+
+# Raw Parameter B
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Raw",], 
+           dv = logB, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+postHoc <- pairwise.t.test(all_sinewave$logB[all_sinewave$Type=="Raw"], 
+                all_sinewave$Group[all_sinewave$Type=="Raw"])
+postHoc
+
+bayes_anova <- anovaBF(logB~Group, 
+        data= all_sinewave[all_sinewave$Type=="Raw", ])
+bayes_anova@bayesFactor
+
+b20_b40 <- ttestBF(x=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B40")])
+b20_b40@bayesFactor
+
+b20_b60 <- ttestBF(x=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B60")])
+b20_b60@bayesFactor
+
+b40_b60 <- ttestBF(x=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B40")],
+                   y=all_sinewave$logB[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B60")])
+b40_b60@bayesFactor
+
+```
+
+# Raw Parameter Sm
+
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Raw",], 
+           dv = logSm, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+postHoc <- pairwise.t.test(all_sinewave$logSm[all_sinewave$Type=="Raw"], 
+                all_sinewave$Group[all_sinewave$Type=="Raw"])
+postHoc
+
+bayes_anova <- anovaBF(logSm~Group, 
+        data= all_sinewave[all_sinewave$Type=="Raw", ])
+bayes_anova@bayesFactor
+
+b20_b40 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B40")])
+b20_b40@bayesFactor
+
+b20_b60 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B60")])
+b20_b60@bayesFactor
+
+b40_b60 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B40")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Raw" & 
+                                            all_sinewave$Group=="B60")])
+b40_b60@bayesFactor
+
+```
+
+
+
+# Raw Parameter P
+
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Raw",], 
+           dv = logP, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+
+bayes_anova <- anovaBF(logP~Group, 
+        data= all_sinewave[all_sinewave$Type=="Raw", ])
+bayes_anova@bayesFactor
+
+```
+
+# Norm Parameter B
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Norm",], 
+           dv = logB, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+
+bayes_anova <- anovaBF(logB~Group, 
+        data= all_sinewave[all_sinewave$Type=="Norm", ])
+bayes_anova@bayesFactor
+
+```
+
+# Norm Parameter Sm
+
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Norm",], 
+           dv = logSm, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+postHoc <- pairwise.t.test(all_sinewave$logSm[all_sinewave$Type=="Norm"], 
+                all_sinewave$Group[all_sinewave$Type=="Norm"])
+postHoc
+
+bayes_anova <- anovaBF(logSm~Group, 
+        data= all_sinewave[all_sinewave$Type=="Norm", ])
+bayes_anova@bayesFactor
+
+b20_b40 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B40")])
+b20_b40@bayesFactor
+
+b20_b60 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B20")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B60")])
+b20_b60@bayesFactor
+
+b40_b60 <- ttestBF(x=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B40")],
+                   y=all_sinewave$logSm[which(all_sinewave$Type=="Norm" & 
+                                            all_sinewave$Group=="B60")])
+b40_b60@bayesFactor
+
+
+```
+
+# Norm Parameter P
+
+
+```{r}
+#nhst rm anov
+
+nhst_anova <- anova_test(all_sinewave[all_sinewave$Type=="Norm",], 
+           dv = logP, 
+           between = "Group", 
+           white.adjust=TRUE)
+nhst_anova
+
+
+bayes_anova <- anovaBF(logP~Group, 
+        data= all_sinewave[all_sinewave$Type=="Norm", ])
+bayes_anova@bayesFactor
+
+```
+
+```{r}
+
+MEAN <- function(x){mean(x,na.rm=T)}
+SEM <- function(x){sd(x,na.rm=T)/sqrt(length(x))}
+
+sum <- all_sinewave %>% group_by(Group,Type) %>% summarise(across(.cols = 
+                                                             c(B,Sm,P), 
+                                                           .fns = 
+                                                             c(MEAN,SEM)))
+colnames(sum) <- c("Group","Type","Bmean","Bsem","Smmean","Smsem",
+                            "Pmean", "Psem")
+sum
+```

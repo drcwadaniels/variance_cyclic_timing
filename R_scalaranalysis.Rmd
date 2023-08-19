@@ -1,0 +1,195 @@
+---
+title: "Analysis of Scalar Property"
+author: "Carter Daniels"
+date: "February 21, 2022"
+output: html_document
+---
+
+```{r}
+#libraries
+library(lme4)
+library(tidyverse)
+library(ggplot2)
+library(greybox)
+#library(qpcR)
+
+```
+
+```{r}
+#load in data
+path <- "D://Dropbox Drive Folder//Dropbox//2 All of Carter's Stuff//Carter Local//Jupyter Lab//"
+mean_data <- read.csv(paste(path, "mean_byFI.csv", sep=""))
+sd_data <- read.csv(paste(path, "std_byFI.csv", sep=""))
+cv_data <- read.csv(paste(path, "cv_byFI.csv", sep=""))
+
+mean_data<-mean_data[,c("SubjectID", "Group","ProgFI","Breakpoint")]
+sd_data<-sd_data[,c("SubjectID", "Group","ProgFI","Breakpoint")]
+cv_data<-cv_data[,c("SubjectID", "Group","ProgFI","Breakpoint")]
+
+colnames(mean_data)[4]<-"mu"
+colnames(sd_data)[4]<-"sd"
+colnames(cv_data)[4]<-"cv"
+
+all_data<-mean_data
+all_data$sd<-sd_data$sd
+all_data$cv<-cv_data$cv
+
+all_data$Group<-factor(all_data$Group)
+
+```
+
+```{r}
+#Aanalysis of average data
+
+summary_all_data<-all_data%>%group_by(Group,ProgFI)%>%summarise(mu=mean(mu),sd=mean(sd),cv=mean(cv))
+ggplot(data=summary_all_data) + 
+  geom_point(aes(x=ProgFI,y=mu,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=mu,color=Group))+
+  geom_point(aes(x=ProgFI,y=sd,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=sd,color=Group))+
+  geom_point(aes(x=ProgFI,y=cv*105,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=cv*105,color=Group))+
+  scale_y_continuous(name="Mean or SD (s)", sec.axis = sec_axis(~./105,name="CV"))
+
+
+```
+
+```{r}
+mean_model1<-lm(mu~ProgFI,data=summary_all_data)
+mean_model2<-lm(mu~poly(ProgFI,2),data=summary_all_data)
+mean_model3<-lm(mu~poly(ProgFI,3),data=summary_all_data)
+summary_all_data$mu_predict<-mean_model2$fitted.values
+
+
+```
+
+```{r}
+sd_model1<-lm(sd~ProgFI,data=summary_all_data)
+sd_model2<-lm(sd~poly(ProgFI,2),data=summary_all_data)
+sd_model3<-lm(sd~poly(ProgFI,3),data=summary_all_data)
+sd_model4<-lm(sd~poly(ProgFI,4),data=summary_all_data)
+summary_all_data$sd_predict<-sd_model3$fitted.values
+
+```
+
+```{r}
+cv_model1<-lm(cv~ProgFI,data=summary_all_data)
+cv_model2<-lm(cv~poly(ProgFI,2),data=summary_all_data)
+cv_model3<-lm(cv~poly(ProgFI,3),data=summary_all_data)
+summary_all_data$cv_predict<-cv_model2$fitted.values
+
+```
+
+
+```{r}
+#Aanalysis of average data
+
+ggplot(data=summary_all_data) + 
+  geom_point(aes(x=ProgFI,y=mu,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=mu_predict))+
+  geom_point(aes(x=ProgFI,y=sd,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=sd_predict))+
+  geom_point(aes(x=ProgFI,y=cv*105,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=cv_predict*105))+
+  scale_y_continuous(name="Mean or SD (s)", sec.axis = sec_axis(~./105,name="CV"))
+
+
+```
+
+```{r}
+#analysis taking into account nesting of subjects
+library(lmerTest)
+mean_lme_model1<-lmer(mu~ProgFI+(1+ProgFI|Group:SubjectID),data=all_data)
+mean_lme_model1_wgroup<-lmer(mu~ProgFI+Group+(1+ProgFI|Group:SubjectID),data=all_data) #did not converge
+mean_lme_model2<-lmer(mu~poly(ProgFI,2)+(1+ProgFI|Group:SubjectID),data=all_data) # did not converge
+BICc(mean_lme_model1)
+BICc(mean_lme_model1_wgroup)
+BICc(mean_lme_model2)
+
+all_data$mu_lme_pred<-predict(mean_lme_model1_wgroup)
+
+summary(mean_lme_model1_wgroup)
+
+```
+
+
+```{r}
+#analysis taking into account nesting of subjects
+sd_lme_model1<-lmer(sd~ProgFI+(1|Group:SubjectID),data=all_data)
+sd_lme_model1_wgroup<-lmer(sd~ProgFI+Group+(1|Group:SubjectID),data=all_data)
+sd_lme_model2<-lmer(sd~poly(ProgFI,2)+(1|Group:SubjectID),data=all_data)
+sd_lme_model2_wgroup<-lmer(sd~poly(ProgFI,2)+Group+(1|Group:SubjectID),data=all_data)
+sd_lme_model3<-lmer(sd~poly(ProgFI,3)+(1|Group:SubjectID),data=all_data)
+sd_lme_model3_wgroup<-lmer(sd~poly(ProgFI,3)+Group+(1|Group:SubjectID),data=all_data)
+sd_lme_model4<-lmer(sd~poly(ProgFI,4)+(1|Group:SubjectID),data=all_data)
+
+BICc(sd_lme_model1)
+BICc(sd_lme_model1_wgroup)
+BICc(sd_lme_model2)
+BICc(sd_lme_model2_wgroup)
+BICc(sd_lme_model3)
+BICc(sd_lme_model3_wgroup)
+BICc(sd_lme_model4)
+
+all_data$sd_lme_pred<-predict(sd_lme_model3)
+
+summary(sd_lme_model3)
+
+
+```
+
+```{r}
+#analysis taking into account nesting of subjects
+cv_lme_model1<-lmer(cv~ProgFI+(1|Group:SubjectID),data=all_data)
+cv_lme_model1_wgroup<-lmer(cv~ProgFI+Group+(1|Group:SubjectID),data=all_data)
+cv_lme_model2<-lmer(cv~poly(ProgFI,2)+(1|Group:SubjectID),data=all_data)
+cv_lme_model2_wgroup<-lmer(cv~poly(ProgFI,2)+Group+(1|Group:SubjectID),data=all_data)
+cv_lme_model3<-lmer(cv~poly(ProgFI,3)+(1|Group:SubjectID),data=all_data)
+
+BICc(cv_lme_model1)
+BICc(cv_lme_model1_wgroup)
+BICc(cv_lme_model2)
+BICc(cv_lme_model2_wgroup)
+BICc(cv_lme_model3)
+
+all_data$cv_lme_pred<-predict(cv_lme_model2_wgroup)
+
+summary(cv_lme_model2_wgroup)
+
+
+```
+
+```{r}
+#Aanalysis of average data
+
+summary_all_data<-all_data%>%group_by(Group,ProgFI)%>%summarise(mu=mean(mu),sd=mean(sd),cv=mean(cv),mu_pred=mean(mu_lme_pred),sd_pred=mean(sd_lme_pred), cv_pred=mean(cv_lme_pred))
+ggplot(data=summary_all_data) + 
+  geom_point(aes(x=ProgFI,y=mu,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=mu_pred,color=Group))+
+  geom_point(aes(x=ProgFI,y=sd,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=sd_pred,color=Group))+
+  geom_point(aes(x=ProgFI,y=cv*105,color=Group)) + 
+  geom_line(aes(x=ProgFI,y=cv_pred*105,color=Group))+
+  scale_y_continuous(name="Mean or SD (s)", sec.axis = sec_axis(~./105,name="CV"))
+
+
+```
+
+```{r, fig.width=24, fig.height=24}
+
+ggplot(data=all_data) + 
+  geom_point(aes(x=ProgFI,y=mu),color="blue") + 
+  geom_line(aes(x=ProgFI,y=mu_lme_pred),color="blue")+
+  geom_point(aes(x=ProgFI,y=sd),color="orange") + 
+  geom_line(aes(x=ProgFI,y=sd_lme_pred),color="orange")+
+  geom_point(aes(x=ProgFI,y=cv*105),color="black") + 
+  geom_line(aes(x=ProgFI,y=cv_lme_pred*105),color="black")+
+  scale_y_continuous(name="Mean or SD (s)", sec.axis = sec_axis(~./105,name="CV")) +
+  facet_wrap(~SubjectID)
+```
+
+```{r}
+write.csv(summary_all_data,"summarized_predictions.csv")
+write.csv(all_data,"all_data_predictions.csv")
+
+```
